@@ -1,0 +1,10 @@
+.history
+*.out
+rpc_server.bin
+.vscode
+.torrent.db
+.torrent.db-shm
+.torrent.db-wal
+torrent/
+config.jsonc
+*.log
