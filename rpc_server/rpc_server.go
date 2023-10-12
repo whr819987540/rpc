@@ -8,7 +8,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"main/utils"
+	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -19,6 +19,7 @@ import (
 	"sync"
 	"syscall"
 	"time"
+	"utils"
 
 	"github.com/anacrolix/log"
 	"github.com/anacrolix/torrent"
@@ -42,6 +43,8 @@ var mi *metainfo.MetaInfo
 var configStruct *config.Config
 var storageMethod string          // 存储方法
 var torrentClient *torrent.Client // 管理所有torrent的client
+// Trackers are the urls of trackers
+var Trackers [][]string
 
 func accessLog(r *http.Request) {
 	log.Printf("%s %s from %s", r.Method, r.RequestURI, r.RemoteAddr)
@@ -606,13 +609,15 @@ func main() {
 	flag.Parse()
 
 	// 加载配置数据
-	// jsoncFileName := "config.jsonc"
 	configStruct, err = config.LoadJsonc(*jsoncFileName)
-	storageMethod = strings.ToLower(configStruct.Storage.Method)
 	if err != nil {
-		fmt.Errorf("load config error: %v", err)
+		log.Printf("load config error: %v", err)
 		return
 	}
+	log.Printf("configStruct %v",configStruct)
+
+	storageMethod = strings.ToLower(configStruct.Storage.Method)
+	Trackers = configStruct.Tracker.URLList
 
 	// 设置torrent.Client
 	// client config

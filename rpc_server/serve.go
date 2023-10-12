@@ -20,18 +20,6 @@ import (
 	"github.com/anacrolix/torrent/storage"
 )
 
-var Trackers = [][]string{
-	// {"udp://tracker.opentrackr.org:1337/announce"},
-	// {"udp://tracker.openbittorrent.com:6969/announce"},
-	// {"udp://tracker.moeking.me:6969/announce"},
-	// {"udp://p4p.arenabg.com:1337/announce"},
-	// {`wss://tracker.btorrent.xyz`},
-	// {`wss://tracker.openwebtorrent.com`},
-	// {"udp://tracker.opentrackr.org:1337/announce"},
-	// {"udp://tracker.openbittorrent.com:6969/announce"},
-	{"udp://47.109.111.117:6969/annouce"}, // chihaya
-}
-
 func fromMemory(byteData []byte) (*metainfo.MetaInfo, error) {
 	info := metainfo.Info{}
 	mi := metainfo.MetaInfo{}
@@ -41,7 +29,8 @@ func fromMemory(byteData []byte) (*metainfo.MetaInfo, error) {
 	}
 	mi.SetDefaults()
 	mi.InfoBytes = bencode.MustMarshal(info)
-	// tracker也应该是可以配置的,不应该固定
+	// TODO:tracker也应该是可以配置的,不应该固定
+	// DONE:将tracker的值放到了配置文件中
 	mi.Announce = Trackers[0][0]
 	mi.AnnounceList = Trackers
 
@@ -63,7 +52,8 @@ func fromTMPFS(filePath string) (*metainfo.MetaInfo, error) {
 	mi := metainfo.MetaInfo{}
 	mi.SetDefaults()
 	mi.InfoBytes = bencode.MustMarshal(info)
-	// tracker也应该是可以配置的,不应该固定
+	// TODO:tracker也应该是可以配置的,不应该固定
+	// DONE:将tracker的值放到了配置文件中
 	mi.Announce = Trackers[0][0]
 	mi.AnnounceList = Trackers
 
