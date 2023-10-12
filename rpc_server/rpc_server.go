@@ -8,7 +8,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -614,7 +613,7 @@ func main() {
 		log.Printf("load config error: %v", err)
 		return
 	}
-	log.Printf("configStruct %v",configStruct)
+	log.Printf("configStruct %v", configStruct)
 
 	storageMethod = strings.ToLower(configStruct.Storage.Method)
 	Trackers = configStruct.Tracker.URLList
@@ -661,15 +660,6 @@ func main() {
 		clientConfigString += fmt.Sprintf("%v: %v", k, v) + "\n"
 	}
 	log.Printf("info: clientConfig %s", clientConfigString)
-
-	// 读取模型数据
-	modleParamPath := path.Join(configStruct.Model.ModelPath, configStruct.Model.ModelName)
-	log.Printf("modleParamPath %s", modleParamPath)
-	data, err = readModelParam(modleParamPath)
-	if err != nil {
-		log.Printf("read %s param error: %v", configStruct.Model.ModelName, err)
-	}
-	log.Printf("read %d bytes from model %s", len(data), configStruct.Model.ModelName)
 
 	// 启动
 	httpFunc()
