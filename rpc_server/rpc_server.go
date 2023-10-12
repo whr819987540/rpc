@@ -569,6 +569,50 @@ func start_downloading(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func get_name(w http.ResponseWriter, r *http.Request) {
+	log.Printf("%s %s from %s", r.Method, r.RequestURI, r.RemoteAddr)
+	if r.Method != "POST" {
+		log.Printf("Invalid request method %s", r.Method)
+		http.Error(w, fmt.Sprintf("Invalid request method %s", r.Method), http.StatusMethodNotAllowed)
+		return
+	}
+
+	// read data
+	metaInfoBytes, err := io.ReadAll(r.Body)
+	if err != nil {
+		log.Printf("start_downloading read data error: %v", err)
+		http.Error(w, "Read data failed", http.StatusInternalServerError)
+		return
+	}
+	log.Printf("start_downloading read data ok")
+
+	// MetaInfo
+	var mi metainfo.MetaInfo
+	d := bencode.NewDecoder(bytes.NewBuffer(metaInfoBytes))
+	err = d.Decode(&mi)
+	if err != nil {
+		log.Printf("start_downloading bdecode torrent error: %v", err)
+		http.Error(w, "Bdecode torrent failed", http.StatusInternalServerError)
+		return
+	}
+	log.Printf("start_downloading bdecode torrent ok")
+
+	// Info
+	info, err := mi.UnmarshalInfo()
+	if err != nil {
+		log.Printf("start_downloading unmarshal info bytes error: %v", err)
+		http.Error(w, "Unmarshal info bytes failed", http.StatusInternalServerError)
+		return
+	}
+
+	n, err := w.Write(([]byte(info.BestName())))
+	if err != nil {
+		log.Printf("get_name write status to %s error: %v", r.RemoteAddr, err)
+		return
+	}
+	log.Printf("get_name write %d bytes status to %s ok", n, r.RemoteAddr)
+}
+
 func f(w http.ResponseWriter, r *http.Request) {
 	log.Printf("%s %s from %s", r.Method, r.RequestURI, r.RemoteAddr)
 	if storageMethod == "memory" {
@@ -594,6 +638,7 @@ func httpFunc() {
 	http.HandleFunc("/stop_seeding/", stop_seeding)
 	http.HandleFunc("/get_torrent_status/", get_torrent_status)
 	http.HandleFunc("/start_downloading/", start_downloading)
+	http.HandleFunc("/get_name/", get_name)
 
 	if err := http.ListenAndServe(fmt.Sprintf(":%d", configStruct.Port.HTTPPort), nil); err != nil {
 		log.Printf("listen %d error", configStruct.Port.HTTPPort)
