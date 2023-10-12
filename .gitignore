@@ -9,3 +9,4 @@ torrent/
 config.jsonc
 *.log
 __pycache__
+config.json

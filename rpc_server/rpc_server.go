@@ -649,7 +649,7 @@ func main() {
 	var err error
 
 	debugFlag = flag.Bool("debug", false, "bool, debug flag. (false by default.")
-	jsoncFileName := flag.String("config", "config.jsonc", "set the config file path.")
+	jsoncFileName := flag.String("config", "config.json", "set the config file path.")
 	flag.Parse()
 
 	// 加载配置数据
