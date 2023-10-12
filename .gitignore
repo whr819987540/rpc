@@ -8,3 +8,4 @@ rpc_server.bin
 torrent/
 config.jsonc
 *.log
+__pycache__
