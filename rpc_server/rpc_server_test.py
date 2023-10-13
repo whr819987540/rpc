@@ -16,7 +16,7 @@ def load_config(path):
 
 def remove_comments(text):
     # 匹配 // 注释并替换为空字符串
-    pattern = r"//.*"
+    pattern = r"// .*"
     result = re.sub(pattern, "", text)
     return result
 
@@ -81,7 +81,7 @@ def test_start_seeding():
         print("create torrent failed")
         return
     else:
-        print(ret)
+        print(torrent)
 
     # start_seeding
     url = f"http://localhost:{httpPort}/start_seeding/"
@@ -126,7 +126,7 @@ def test_get_torrent_status():
 
 def test_start_downloading():
     # load_torrent
-    with open("./torrent/music_40MB.torrent","rb") as f:
+    with open("./torrent/bert_base_model.pth.torrent","rb") as f:
         torrent = f.read()
 
     # start_downloading
@@ -137,11 +137,11 @@ def test_start_downloading():
 
 if __name__ == "__main__":
     # 加载配置文件
-    config = load_config("./config.jsonc")
+    config = load_config("./config.json")
     httpPort = config["port"]["HttpPort"]
 
     # test_create_torret()
     # test_start_seeding()
     # test_stop_seeding()
     # test_get_torrent_status()
-    # test_start_downloading()
+    test_start_downloading()
