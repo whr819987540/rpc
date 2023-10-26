@@ -1,7 +1,9 @@
 {
+    // deprecated, only for test
     "server": {
         "ServerIP": "47.99.68.74" // PS的ip
     },
+    // deprecated, only for test
     "client": {
         "TotalPeers": 3, // 总节点数
         "IPList": [] // client的ip
@@ -13,7 +15,7 @@
     "model": {
         // "ModelPath": "/root/compare/model",
         "ModelPath": "/dev/shm", // tmpfs, 存储在共享内存的存储区域
-        "ModelName": "bert_base_model.pth"
+        "ModelName": "bert_base_model.pth" // deprecated, only for test
         // ModelName = "新冠药物.bmp"
     },
     "storage": {
