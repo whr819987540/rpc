@@ -283,7 +283,7 @@ class RPCClient:
         """
         url = f"http://localhost:{self.http_port}/get_name/"
         name, status_code = post(url, torrent)
-        return name, status_code == 200
+        return name.decode(), status_code == 200
 
 
 if __name__ == "__main__":
