@@ -1,18 +1,7 @@
-# 将go提供的HTTP接口封装为接口库
-# 并进行状态管理
-
-# 分布式学习框架
-# 需要参照pytorch分布式中通信接口的定义
-# 1、server需要知道有多少个client，client知道server的ip地址
-# 2、server通过42069端口接收client的连接，并维持长连接。（TCP）
-# 3、distribution阶段，server生成metainfo（server调用create_torrent）后，将metainfo推送给各个client
-# 4、client收到metainfo后，开始下载（client调用start_downloading）。下载完成后，仍然进行seeding
-# 5、client完成下载后，train
-#   client告知server完成下载，当所有client都完成本轮下载后，4中seeding的内容不再有效，server告知client可以卸载某个metainfo
-#   设计理念：在保证高带宽利用率的同时，降低内存利用率。
-# 6、client开始回传
-# 7、server收到所有client的回传后，完成aggregation。
-# 回到3
+"""
+    RPCClient调用go提供的数据传输服务
+    TorrentCommunication继续封装RPCClient的功能, 形成三个原语
+"""
 
 import os
 import re
