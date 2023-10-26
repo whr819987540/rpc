@@ -30,7 +30,7 @@ class TorrentCommunication:
                 2) 将torrent广播(这个广播操作借用了pytorch.distributed提供的broadcast)给所有client, client收到后会以torrent为参数通过bt_recv操作开始下载
             如果是client, bt_broadcast负责接收torrent
             无论是server还是client, 这个函数都会返回torrent
-            
+
         通信原语2: bt_recv通过bt进行下载
             1) 以torrent为参数调用RPCClient.start_downloading
             2) 再调用RPCServer.start_downloading
@@ -48,7 +48,7 @@ class TorrentCommunication:
     def bt_broadcast(self, data_path: Union[str, None]):
         """
             For server, data_path is str and this function returns torrent. If this function failed, an Exception will be raised.
-            
+
             For client, data_path is None and this function returns torrent.
         """
         rank = dist.get_rank()
@@ -96,8 +96,6 @@ class TorrentCommunication:
         text, status = self.rpc_client.stop_seeding(torrent)
         if not status:
             raise Exception(text)
-
-
 
 
 def loadConfig(filepath: str):
