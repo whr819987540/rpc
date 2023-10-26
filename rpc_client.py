@@ -328,7 +328,8 @@ if __name__ == "__main__":
     with open("./torrent/music_40MB.torrent", "rb") as f:
         torrent = f.read()
     downloading_output, status = rpc_client.start_downloading(torrent)
-    print(downloading_output)
+    model_name, status = rpc_client.get_name(torrent)
+    print(downloading_output, rpc_client.save_dir, model_name.decode("utf-8"))
     if not status:
         print("download failed")
         exit(0)
