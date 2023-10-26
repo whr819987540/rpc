@@ -26,30 +26,15 @@ import signal
 import sys
 
 
-class Communication:
-    def __init__(
-        self,
-    ):
-        pass
-
-    def push(
-        self,
-    ):
-        pass
-
-    def pull(
-        self,
-    ):
-        pass
-
-    def create_torrent(
-        self,
-    ):
-        pass
 
 
-# 加载jsonc配置文件
+
+
+
 def loadConfig(filepath: str):
+    """
+        加载jsonc配置文件
+    """
     # 加载jsonc文件
     content = readJsonc(filepath)
     # 转换成结构体
@@ -60,8 +45,10 @@ def loadConfig(filepath: str):
     return config
 
 
-# 读取jsonc文件并去除注释
 def readJsonc(jsoncFileName: str):
+    """
+        读取jsonc文件并去除注释
+    """
     if not os.path.exists(jsoncFileName):
         raise Exception(f"{jsoncFileName} not found")
     with open(jsoncFileName, "r") as f:
@@ -70,17 +57,21 @@ def readJsonc(jsoncFileName: str):
     return removeComments(content)
 
 
-# 去除jsonc文件中的注释
 def removeComments(json_string):
     comment_regex = re.compile(r"(?m)(?s)//.*?$|/\*.*?\*/")
+    """
+        去除jsonc文件中的注释
+    """
     tmp = comment_regex.sub("", json_string)
     whitespace_regex = re.compile(r"(?m)^\s*$[\r\n]*", re.MULTILINE)
 
     return whitespace_regex.sub("", tmp)
 
 
-# 将嵌套字典转成namespace
 def to_namespace(data):
+    """
+        将嵌套字典转成namespace
+    """
     if not isinstance(data, dict):
         return data
 
