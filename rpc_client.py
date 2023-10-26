@@ -58,10 +58,10 @@ def readJsonc(jsoncFileName: str):
 
 
 def removeComments(json_string):
-    comment_regex = re.compile(r"(?m)(?s)//.*?$|/\*.*?\*/")
     """
         去除jsonc文件中的注释
     """
+    comment_regex = re.compile(r"(?m)(?s)// .*?$|/\*.*?\*/")
     tmp = comment_regex.sub("", json_string)
     whitespace_regex = re.compile(r"(?m)^\s*$[\r\n]*", re.MULTILINE)
 
