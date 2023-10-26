@@ -270,6 +270,21 @@ class RPCClient:
         downloading_output, status_code = post(url, torrent)
         return json.loads(downloading_output), status_code == 200
 
+    def get_name(self, torrent):
+        """
+        get the name of the file or directory specified in torrent
+
+        Args:
+            torrent (bytes): metainfo of the file
+
+        Returns:
+            name(str): 
+            status (bool): status_code == 200 OR NOT
+        """
+        url = f"http://localhost:{self.http_port}/get_name/"
+        name, status_code = post(url, torrent)
+        return name, status_code == 200
+
 
 if __name__ == "__main__":
     rpc_client = RPCClient()
