@@ -109,13 +109,16 @@ class RPCClient:
     用python调用RPC server(go)提供的HTTP服务
     """
 
-    def __init__(self) -> None:
-        # 以子进程的形式启动RPC server（go）
-        self.start_rpc_server()
+    def __init__(self, logger: logging.Logger) -> None:
+        self.logger = logger
         # 加载配置文件
-        config = loadConfig("./rpc_server/config.jsonc")
+        self.current_path = os.path.dirname(os.path.abspath(__file__))
+        config = loadConfig(os.path.join(self.current_path, "rpc_server", "config.json"))
         self.http_port = config.port.HttpPort
         self.storage_method = config.storage.Method
+        self.save_dir = config.model.ModelPath
+        # 以子进程的形式启动RPC server（go）
+        self.start_rpc_server()
 
         if self.storage_method == "memory":
             raise NotImplementedError
@@ -151,9 +154,15 @@ class RPCClient:
         # parent_proc.kill()
 
     def rpc_server(self):
-        with open("rpc_server.log", "wb") as f:
+        log_path = os.path.join(self.current_path, f"rpc_server_{dist.get_rank()}.log")
+        bin_path = os.path.join(self.current_path, "rpc_server", "rpc_server.bin")
+        config_path = os.path.join(self.current_path, "rpc_server", "config.json")
+        cmd = f"{bin_path} -config {config_path}"
+        self.logger.info(f"start rpc server cmd: {cmd}")
+
+        with open(log_path, "wb") as f:
             self.rpc_server_process = Popen(
-                "./rpc_server/rpc_server -config ./rpc_server/config.jsonc",
+                cmd,
                 shell=True,
                 stdout=f,
                 stderr=f,
