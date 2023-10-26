@@ -177,7 +177,7 @@ class RPCClient:
 
         Returns:
             torrent (bytes): metainfo of file
-            status_code (int): status code
+            status (bool): status_code == 200 OR NOT
         """
         url = f"http://localhost:{self.http_port}/create_torrent/"
         if self.storage_method == "memory":
