@@ -17,6 +17,7 @@ import torch
 import numpy as np
 from typing import Union
 import logging
+from concurrent.futures import ThreadPoolExecutor
 
 
 class TorrentCommunication:
@@ -44,6 +45,7 @@ class TorrentCommunication:
         """
         self.rpc_client = RPCClient(logger)
         self.logger = logger
+        self.thread_pool = ThreadPoolExecutor(2)
 
     def bt_broadcast(self, data_path: Union[str, None]):
         """
@@ -58,29 +60,48 @@ class TorrentCommunication:
             torrent, status = self.rpc_client.create_torrent(data_path)
             if not status:
                 raise Exception("create torrent error")
+            self.logger.debug("create torrent ok")
 
             # TODO: run seed and send torrent in parallel
+            # DONE: 简单的进行并行通信即可, 如果server向tracker seed先完成, client后收到torrent, 当然是可以的
+            # 在现在的实现下需要RTT(server,tracker)<2*RTT(server,client), 总时间为2*RTT(server,client)+RTT(client,tracker)
+            # 如果client先收到torrent, 之后server才成功地向tracker seed,即RTT(server,tracker)>2*RTT(server,client), 
+            # 总时间将变为RTT(server,tracker)+RTT(client,tracker)+interval
+            # 目前这种情况不会发生, 因为server到client需要两次broadcast, 且server到tracker的通信是很快的
             # seed
-            text, status = self.rpc_client.start_seeding(torrent)
-            if not status:
-                raise Exception(text)
+            future_list = []
+            future_list.append(self.thread_pool.submit(self._start_seeding, self, torrent))
+            # text, status = self.rpc_client.start_seeding(torrent)
+            # if not status:
+            #     raise Exception(text)
 
             # send torrent
-            torrent_tensor = torch.from_numpy(np.frombuffer(torrent, np.uint8))
-            # TODO: 这里存在两个发送，增加了时延，通过别的发送方式可以优化
-            # size
-            dist.broadcast(torch.tensor([torrent_tensor.shape[0]], dtype=torch.int64), 0)
-            # data
-            dist.broadcast(torrent_tensor, 0)
+            future_list.append(self.thread_pool.submit(self._broadcast_torrent, self, torrent))
+            # torrent_tensor = torch.from_numpy(np.frombuffer(torrent, np.uint8))
+            # # TODO: 这里存在两个发送，增加了时延，通过别的发送方式可以优化
+            # # size
+            # dist.broadcast(torch.tensor([torrent_tensor.shape[0]], dtype=torch.int64), 0)
+            # # data
+            # dist.broadcast(torrent_tensor, 0)
+
+            for future in future_list:
+                result = future.result()
+                if result is None:
+                    continue
+                else:
+                    raise result
+            
             return torrent
         else:
             # size
+            self.logger.debug("clinet bt_broadcast")
             torrent_size = torch.empty(1, dtype=torch.int64)
             dist.broadcast(torrent_size, 0)
             # data
             torrent_tensor = torch.empty(torrent_size[0], dtype=torch.uint8)
             dist.broadcast(torrent_tensor, 0)
             torrent = torrent_tensor.numpy().tobytes()
+            self.logger.debug("clinet bt_broadcast is done")
 
         return torrent
 
@@ -96,6 +117,26 @@ class TorrentCommunication:
         text, status = self.rpc_client.stop_seeding(torrent)
         if not status:
             raise Exception(text)
+
+    @staticmethod
+    def _start_seeding(self, torrent):
+        self.logger.debug("_start_seeding")
+        text, status = self.rpc_client.start_seeding(torrent)
+        if not status:
+            return Exception(text)
+        self.logger.debug("_start_seeding is done")
+        
+
+    @staticmethod
+    def _broadcast_torrent(self, torrent):
+        self.logger.debug("_broadcast_torrent")
+        torrent_tensor = torch.from_numpy(np.frombuffer(torrent, np.uint8))
+        # TODO: 这里存在两个发送，增加了时延，通过别的发送方式可以优化
+        # size
+        dist.broadcast(torch.tensor([torrent_tensor.shape[0]], dtype=torch.int64), 0)
+        # data
+        dist.broadcast(torrent_tensor, 0)
+        self.logger.debug("_broadcast_torrent is done")
 
 
 def loadConfig(filepath: str):
