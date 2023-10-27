@@ -105,6 +105,8 @@ class TorrentCommunication:
 
     def bt_recv(self, torrent: bytes):
         # TODO: 这个函数可以是非阻塞的
+        # DONE: 这个函数没必要是非阻塞的
+        # 因为bt-ps以所有梯度为单位进行分发, 目前没有实现细粒度的通信, 通信与计算在这里无法并行, 也就没必要改成非阻塞
         downloading_output, status = self.rpc_client.start_downloading(torrent)
         if not status:
             raise Exception("bt_recv downloading error")
