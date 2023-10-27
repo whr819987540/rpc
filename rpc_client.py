@@ -90,8 +90,6 @@ class TorrentCommunication:
                     continue
                 else:
                     raise result
-            
-            return torrent
         else:
             # size
             self.logger.debug("clinet bt_broadcast")
