@@ -611,6 +611,31 @@ func get_name(w http.ResponseWriter, r *http.Request) {
 	log.Printf("get_name write %d bytes status to %s ok", n, r.RemoteAddr)
 }
 
+func echo(w http.ResponseWriter, r *http.Request) {
+	log.Printf("%s %s from %s", r.Method, r.RequestURI, r.RemoteAddr)
+	if r.Method != "POST" {
+		log.Printf("Invalid request method %s", r.Method)
+		http.Error(w, fmt.Sprintf("Invalid request method %s", r.Method), http.StatusMethodNotAllowed)
+		return
+	}
+
+	// read data
+	data, err := io.ReadAll(r.Body)
+	if err != nil {
+		log.Printf("echo read data error: %v", err)
+		http.Error(w, "Read data failed", http.StatusInternalServerError)
+		return
+	}
+	log.Printf("echo read data ok")
+
+	n, err := w.Write(data)
+	if err != nil {
+		log.Printf("echo send back to %s error: %v", r.RemoteAddr, err)
+		return
+	}
+	log.Printf("echo send back %d bytes to %s ok", n, r.RemoteAddr)
+}
+
 func f(w http.ResponseWriter, r *http.Request) {
 	log.Printf("%s %s from %s", r.Method, r.RequestURI, r.RemoteAddr)
 	if storageMethod == "memory" {
@@ -637,6 +662,7 @@ func httpFunc() {
 	http.HandleFunc("/get_torrent_status/", get_torrent_status)
 	http.HandleFunc("/start_downloading/", start_downloading)
 	http.HandleFunc("/get_name/", get_name)
+	http.HandleFunc("/echo/", echo)
 
 	if err := http.ListenAndServe(fmt.Sprintf(":%d", configStruct.Port.HTTPPort), nil); err != nil {
 		log.Printf("listen %d error", configStruct.Port.HTTPPort)

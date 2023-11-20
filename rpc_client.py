@@ -248,7 +248,30 @@ class RPCClient:
         rpc_server_thread.start()
         # 子进程启动后并不意味着RPC服务就已经启动（需要启动时间）
         # TODO:在使用RPC服务之前需要进行进程同步
-        sleep(1)
+        # DONE:最简单的方法是使用一下RPC的某个简单服务, 比如echo
+        data = "hello"
+        # sleep(3)
+        redo_times = 3
+        for i in range(redo_times):
+            echo_data,status,e  = self.echo(data.encode())
+            # RPC服务尚未启动
+            if not status:
+                self.logger.error(e)
+                sleep(3)
+                continue
+            
+            echo_data = echo_data.decode()
+            self.logger.info(echo_data)
+            # RPC服务出错
+            if data != echo_data:
+                self.logger.error(f"data: {data}, echo_data: {echo_data}")
+                raise ValueError
+            else:
+                self.logger.info(f"really start rpc_server as a subprocess")
+                break
+        # 可能是因为达到最大的重做次数
+        if not status:
+            raise Exception(f"reach max redo times, failed to start RPC service")
 
     def stop_rpc_server(self):
         # It's not enough to only kill the subprocess, as its subprocesses that listen to the dataport or httpport are still alive, which becode the zombie processes.
@@ -393,6 +416,41 @@ class RPCClient:
         name, status_code = post(url, torrent)
         return name.decode(), status_code == 200
 
+    def echo(self,data:Union[str,bytes],timeout:float=100.0):
+        """
+        echo something to server which will return exactly the same thing
+
+        Args:
+            data (str|bytes): 
+            timeout (float): maximum waiting time for response, 
+                namely the maxinum waiting time for really starting the subprocess
+
+        Returns:
+            data(str|bytes):
+            status (bool): status_code == 200 OR NOT
+            exception
+        """
+        if type(data) is str:
+            data = data.encode()
+        elif type(data) is bytes:
+            pass
+        else:
+            raise TypeError
+
+        url = f"http://localhost:{self.http_port}/echo/"
+        try:
+            r = requests.post(url,data,timeout=timeout)
+        except Exception as e:
+            self.logger.error(e)
+            return None, False, e
+
+        try:
+            r.raise_for_status()
+        except Exception as e:
+            self.logger.error(e)
+            return None, r.status_code == 200, e
+        else:
+            return r.content, r.status_code == 200, None
 
 if __name__ == "__main__":
     rpc_client = RPCClient()
