@@ -31,5 +31,9 @@
                 "udp://47.109.111.117:6969/announce"
             ]
         ]
+    },
+    // torrent
+    "torrent": {
+        "Debug": true
     }
 }

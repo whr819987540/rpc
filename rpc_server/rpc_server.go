@@ -30,8 +30,6 @@ import (
 	"github.com/dustin/go-humanize"
 )
 
-var debugFlag *bool
-
 var data []byte
 var startTime time.Time
 var sendTimes int // 完成发送的次数
@@ -648,7 +646,6 @@ func httpFunc() {
 func main() {
 	var err error
 
-	debugFlag = flag.Bool("debug", false, "bool, debug flag. (false by default.")
 	jsoncFileName := flag.String("config", "config.json", "set the config file path.")
 	flag.Parse()
 
@@ -662,6 +659,7 @@ func main() {
 
 	storageMethod = strings.ToLower(configStruct.Storage.Method)
 	Trackers = configStruct.Tracker.URLList
+	debugFlag := configStruct.TorrentLib.Debug
 
 	// 设置torrent.Client
 	// client config
@@ -675,7 +673,7 @@ func main() {
 	clientConfig.DisableAcceptRateLimiting = true
 	clientConfig.PublicIp6 = nil // 必须设置为nil或设置为真实值, 不能为空, 否则utp会使用dht, 然后报错
 	clientConfig.PublicIp4 = nil
-	clientConfig.Debug = *debugFlag
+	clientConfig.Debug = debugFlag
 	if storageMethod == "memory" {
 		// 如果直接存储在内存中, 一个torrent.Client只能管理一个torrent
 	} else if storageMethod == "tmpfs" {
