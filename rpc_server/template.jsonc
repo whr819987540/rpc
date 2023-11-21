@@ -33,7 +33,7 @@
         ]
     },
     // torrent
-    "torrent": {
+    "torrentLib": {
         "Debug": true
     }
 }
