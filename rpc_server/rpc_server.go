@@ -674,6 +674,7 @@ func main() {
 	var err error
 
 	jsoncFileName := flag.String("config", "config.json", "set the config file path.")
+	randomSeed := flag.Int64("random_seed", 0, "rank is recommended to set random_seed")
 	flag.Parse()
 
 	// 加载配置数据
@@ -701,6 +702,7 @@ func main() {
 	clientConfig.PublicIp6 = nil // 必须设置为nil或设置为真实值, 不能为空, 否则utp会使用dht, 然后报错
 	clientConfig.PublicIp4 = nil
 	clientConfig.Debug = debugFlag
+	clientConfig.RandomSeed = *randomSeed
 	if storageMethod == "memory" {
 		// 如果直接存储在内存中, 一个torrent.Client只能管理一个torrent
 	} else if storageMethod == "tmpfs" {

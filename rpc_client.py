@@ -288,7 +288,8 @@ class RPCClient:
         log_path = os.path.join(self.current_path, f"rpc_server_{dist.get_rank()}.log")
         bin_path = os.path.join(self.current_path, "rpc_server", "rpc_server.bin")
         config_path = os.path.join(self.current_path, "rpc_server", "config.json")
-        cmd = f"{bin_path} -config {config_path}"
+        rank = dist.get_rank()
+        cmd = f"{bin_path} -config {config_path} -random_seed {rank}"
         self.logger.info(f"start rpc server cmd: {cmd}")
 
         with open(log_path, "wb") as f:
