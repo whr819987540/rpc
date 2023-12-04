@@ -30,6 +30,7 @@ import (
 	"github.com/dustin/go-humanize"
 )
 
+var debugFlag bool
 var data []byte
 var startTime time.Time
 var sendTimes int // 完成发送的次数
@@ -685,7 +686,7 @@ func main() {
 
 	storageMethod = strings.ToLower(configStruct.Storage.Method)
 	Trackers = configStruct.Tracker.URLList
-	debugFlag := configStruct.TorrentLib.Debug
+	debugFlag = configStruct.TorrentLib.Debug
 
 	// 设置torrent.Client
 	// client config

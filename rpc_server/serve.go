@@ -73,7 +73,7 @@ func seed(mi *metainfo.MetaInfo, mbp *storage.MemoryBuf) (err error) {
 	log.Printf("start seeding")
 	clientConfig := torrent.NewDefaultClientConfig()
 	clientConfig.Seed = true
-	clientConfig.Debug = *debugFlag
+	clientConfig.Debug = debugFlag
 
 	// 基于totalLength创建storage/client
 	// clientConfig.DefaultStorage
