@@ -441,13 +441,11 @@ class RPCClient:
         try:
             r = requests.post(url,data,timeout=timeout)
         except Exception as e:
-            self.logger.error(e)
             return None, False, e
 
         try:
             r.raise_for_status()
         except Exception as e:
-            self.logger.error(e)
             return None, r.status_code == 200, e
         else:
             return r.content, r.status_code == 200, None
