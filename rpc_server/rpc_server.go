@@ -8,7 +8,9 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
+	"net/netip"
 	"os"
 	"os/signal"
 	"path"
@@ -703,6 +705,8 @@ func main() {
 	clientConfig.PublicIp4 = nil
 	clientConfig.Debug = debugFlag
 	clientConfig.RandomSeed = *randomSeed
+	addrPort, _ := netip.ParseAddrPort(fmt.Sprintf("%s:%d", configStruct.Server.ServerIP, configStruct.Port.DataPort))
+	clientConfig.ServerAddr = net.TCPAddrFromAddrPort(addrPort)
 	if storageMethod == "memory" {
 		// 如果直接存储在内存中, 一个torrent.Client只能管理一个torrent
 	} else if storageMethod == "tmpfs" {

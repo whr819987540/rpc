@@ -1,7 +1,8 @@
 {
     // deprecated, only for test
     "server": {
-        "ServerIP": "47.99.68.74" // PS的ip
+        "ServerIP": "47.99.68.74", // PS的ip
+        "ServerPort": 29601
     },
     // deprecated, only for test
     "client": {
