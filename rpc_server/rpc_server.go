@@ -27,6 +27,7 @@ import (
 	"github.com/anacrolix/torrent/bencode"
 	"github.com/anacrolix/torrent/config"
 	"github.com/anacrolix/torrent/metainfo"
+	"github.com/anacrolix/torrent/request-strategy"
 	"github.com/anacrolix/torrent/storage"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/dustin/go-humanize"
@@ -707,6 +708,11 @@ func main() {
 	clientConfig.RandomSeed = *randomSeed
 	addrPort, _ := netip.ParseAddrPort(fmt.Sprintf("%s:%d", configStruct.Server.ServerIP, configStruct.Port.DataPort))
 	clientConfig.ServerAddr = net.TCPAddrFromAddrPort(addrPort)
+	if pss, err := request_strategy.MapPieceSelectionStrategyEnum(configStruct.TorrentLib.PieceSelectionStrategy); err != nil {
+		panic(err)
+	} else {
+		clientConfig.PieceSelectionStrategy = pss
+	}
 	if storageMethod == "memory" {
 		// 如果直接存储在内存中, 一个torrent.Client只能管理一个torrent
 	} else if storageMethod == "tmpfs" {

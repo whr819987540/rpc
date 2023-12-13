@@ -35,6 +35,7 @@
     },
     // torrent
     "torrentLib": {
-        "Debug": true
+        "Debug": true,
+        "PieceSelectionStrategy": "rf"
     }
 }
