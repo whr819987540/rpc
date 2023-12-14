@@ -8,5 +8,6 @@ rpc_server.bin
 torrent/
 config.jsonc
 *.log
+distribution_aggregation_output.csv
 __pycache__
 config.json
