@@ -417,13 +417,13 @@ class RPCClient:
         name, status_code = post(url, torrent)
         return name.decode(), status_code == 200
 
-    def echo(self,data:Union[str,bytes],timeout:float=100.0):
+    def echo(self,data:Union[str,bytes],timeout:float=3.0):
         """
         echo something to server which will return exactly the same thing
 
         Args:
             data (str|bytes): 
-            timeout (float): maximum waiting time for response, 
+            timeout (float): maximum waiting time for connect and response, 
                 namely the maxinum waiting time for really starting the subprocess
 
         Returns:
@@ -440,7 +440,11 @@ class RPCClient:
 
         url = f"http://localhost:{self.http_port}/echo/"
         try:
-            r = requests.post(url,data,timeout=timeout)
+            # :param timeout: (optional) How many seconds to wait for the server to send data
+            # before giving up, as a float, or a :ref:`(connect timeout, read
+            # timeout) <timeouts>` tuple.
+            # :type timeout: float or tuple
+            r = requests.post(url,data,timeout=(timeout,timeout))
         except Exception as e:
             return None, False, e
 
