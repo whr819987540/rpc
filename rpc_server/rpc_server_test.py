@@ -126,13 +126,24 @@ def test_get_torrent_status():
 
 def test_start_downloading():
     # load_torrent
-    with open("./torrent/bert_base_model.pth.torrent","rb") as f:
+    with open("./torrent/bert_base_model.pth.torrent", "rb") as f:
         torrent = f.read()
 
     # start_downloading
     url = f"http://localhost:{httpPort}/start_downloading/"
     downloading_output, status_code = post(url, torrent)
     print(json.loads(downloading_output), status_code)
+
+
+def test_echo(timeout: float = 5.0):
+    data = "hello".encode()
+    url = f"http://localhost:{httpPort}/echo/"
+    try:
+        r = requests.post(url, data, timeout=(timeout, timeout))
+    except Exception as e:
+        print(e)
+    else:
+        print(r)
 
 
 if __name__ == "__main__":
