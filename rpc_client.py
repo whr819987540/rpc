@@ -20,7 +20,7 @@ import logging
 from concurrent.futures import ThreadPoolExecutor
 
 
-class TorrentCommunication:
+class TorrentCommunicationPyTorch:
     """
         封装RPCClient(python)提供的服务
         只提供两个通信原语与一个停止上传原语
