@@ -73,7 +73,7 @@ class TorrentCommunication:
         pass
 
 
-class TorrentCommunicationPyTorch:
+class TorrentCommunicationPyTorch(TorrentCommunication):
     """
         封装RPCClient(python)提供的服务
         只提供两个通信原语与一个停止上传原语
@@ -155,30 +155,6 @@ class TorrentCommunicationPyTorch:
             self.logger.debug("clinet bt_broadcast is done")
 
         return torrent
-
-    def bt_recv(self, torrent: bytes):
-        # TODO: 这个函数可以是非阻塞的
-        # DONE: 这个函数没必要是非阻塞的
-        # 因为bt-ps以所有梯度为单位进行分发, 目前没有实现细粒度的通信, 通信与计算在这里无法并行, 也就没必要改成非阻塞
-        downloading_output, status = self.rpc_client.start_downloading(torrent)
-        if not status:
-            raise Exception("bt_recv downloading error")
-        else:
-            return downloading_output
-
-    def stop_seeding(self, torrent: bytes):
-        text, status = self.rpc_client.stop_seeding(torrent)
-        if not status:
-            raise Exception(text)
-
-    @staticmethod
-    def _start_seeding(self, torrent):
-        self.logger.debug("_start_seeding")
-        text, status = self.rpc_client.start_seeding(torrent)
-        if not status:
-            return Exception(text)
-        self.logger.debug("_start_seeding is done")
-        
 
     @staticmethod
     def _broadcast_torrent(self, torrent):
