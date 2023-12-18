@@ -26,7 +26,7 @@ class TorrentCommunication:
             实例化RPCClient
         """
         self.rank = rank
-        self.rpc_client = RPCClient(logger)
+        self.rpc_client = RPCClient(self.rank, logger)
         self.logger = logger
         self.thread_pool = ThreadPoolExecutor(2)
 
@@ -96,7 +96,8 @@ class TorrentCommunicationPyTorch(TorrentCommunication):
         """
             实例化RPCClient
         """
-        self.rpc_client = RPCClient(logger)
+        self.rank = dist.get_rank()
+        self.rpc_client = RPCClient(self.rank, logger)
         self.logger = logger
         self.thread_pool = ThreadPoolExecutor(2)
 
