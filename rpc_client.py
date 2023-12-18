@@ -30,7 +30,7 @@ class TorrentCommunication:
         self.logger = logger
         self.thread_pool = ThreadPoolExecutor(2)
 
-    def bt_broadcast(self):
+    def bt_broadcast(self, data_path: Union[str, None]):
         """
             For server, data_path is str and this function returns torrent. If this function failed, an Exception will be raised.
 
