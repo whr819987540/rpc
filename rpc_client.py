@@ -217,7 +217,8 @@ class RPCClient:
     用python调用RPC server(go)提供的HTTP服务
     """
 
-    def __init__(self, logger: logging.Logger) -> None:
+    def __init__(self, rank:int, logger: logging.Logger) -> None:
+        self.rank = rank
         self.logger = logger
         # 加载配置文件
         self.current_path = os.path.dirname(os.path.abspath(__file__))
@@ -288,8 +289,7 @@ class RPCClient:
         log_path = os.path.join(self.current_path, f"rpc_server_{dist.get_rank()}.log")
         bin_path = os.path.join(self.current_path, "rpc_server", "rpc_server.bin")
         config_path = os.path.join(self.current_path, "rpc_server", "config.json")
-        rank = dist.get_rank()
-        cmd = f"{bin_path} -config {config_path} -random_seed {rank}"
+        cmd = f"{bin_path} -config {config_path} -random_seed {self.rank}"
         self.logger.info(f"start rpc server cmd: {cmd}")
 
         with open(log_path, "wb") as f:
