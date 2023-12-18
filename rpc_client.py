@@ -20,6 +20,59 @@ import logging
 from concurrent.futures import ThreadPoolExecutor
 
 
+class TorrentCommunication:
+    def __init__(self, rank:int, logger:logging.Logger):
+        """
+            实例化RPCClient
+        """
+        self.rank = rank
+        self.rpc_client = RPCClient(logger)
+        self.logger = logger
+        self.thread_pool = ThreadPoolExecutor(2)
+
+    def bt_broadcast(self):
+        """
+            For server, data_path is str and this function returns torrent. If this function failed, an Exception will be raised.
+
+            For client, data_path is None and this function returns torrent.
+
+            This function needs to be rewritten according to the specific communication backend.
+        """
+        pass
+
+    def bt_recv(self, torrent: bytes):
+        # TODO: 这个函数可以是非阻塞的
+        # DONE: 这个函数没必要是非阻塞的
+        # 因为bt-ps以所有梯度为单位进行分发, 目前没有实现细粒度的通信, 通信与计算在这里无法并行, 也就没必要改成非阻塞
+        downloading_output, status = self.rpc_client.start_downloading(torrent)
+        if not status:
+            raise Exception("bt_recv downloading error")
+        else:
+            return downloading_output
+
+    def stop_seeding(self, torrent: bytes):
+        text, status = self.rpc_client.stop_seeding(torrent)
+        if not status:
+            raise Exception(text)
+
+    @staticmethod
+    def _start_seeding(self, torrent:bytes):
+        self.logger.debug("_start_seeding")
+        text, status = self.rpc_client.start_seeding(torrent)
+        if not status:
+            return Exception(text)
+        self.logger.debug("_start_seeding is done")
+
+    @staticmethod
+    def _broadcast_torrent(self, torrent:bytes):
+        """
+            Broadcast torrent to all clients.
+
+            This function needs to be rewritten according to the specific communication backend.
+        """
+        pass
+
+
 class TorrentCommunicationPyTorch:
     """
         封装RPCClient(python)提供的服务
