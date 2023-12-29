@@ -483,6 +483,7 @@ func start_downloading(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Unmarshal info bytes failed", http.StatusInternalServerError)
 		return
 	}
+	log.Printf("start_downloading torrent info's name is %s", info.BestName())
 
 	// 向client中添加torrent
 	t, err := torrentClient.AddTorrent(&mi)
