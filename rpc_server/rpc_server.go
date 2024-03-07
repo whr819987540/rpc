@@ -497,7 +497,7 @@ func start_downloading(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
 	// create a goroutine to print the download process
-	utils.TorrentBar(t, false)
+	utils.TorrentBar(t, false, ctx)
 	var wg sync.WaitGroup
 	wg.Add(1)
 	// create a goroutine to download

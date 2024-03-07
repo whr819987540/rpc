@@ -13,7 +13,7 @@ import (
 	"github.com/dustin/go-humanize"
 )
 
-func TorrentBar(t *torrent.Torrent, pieceStates bool) {
+func TorrentBar(t *torrent.Torrent, pieceStates bool, context context.Context) {
 	go func() {
 		start := time.Now()
 		if t.Info() == nil {
@@ -23,7 +23,15 @@ func TorrentBar(t *torrent.Torrent, pieceStates bool) {
 		lastStats := t.Stats()
 		var lastLine string
 		interval := 3 * time.Second
-		for range time.Tick(interval) {
+		for {
+			// 调用函数退出时, 终止该goroutine
+			select {
+			// 下载结束&打印下载信息后, 调用函数退出, 该goroutine被终止
+			case <-context.Done():
+				log.Printf("%v: stopping torrent bar for %q\n", time.Since(start), t.Name())
+				return
+			case <-time.After(interval):
+			}
 			var completedPieces, partialPieces int
 			psrs := t.PieceStateRuns()
 			for _, r := range psrs {
