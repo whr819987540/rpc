@@ -282,7 +282,7 @@ class RPCClient:
         # DONE:最简单的方法是使用一下RPC的某个简单服务, 比如echo
         data = "hello"
         # sleep(3)
-        redo_times = 3
+        redo_times = 20
         for i in range(redo_times):
             echo_data,status,e  = self.echo(data.encode())
             # RPC服务尚未启动
