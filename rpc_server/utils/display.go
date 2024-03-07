@@ -47,7 +47,8 @@ func TorrentBar(t *torrent.Torrent, pieceStates bool, context context.Context) {
 			byteRate *= stats.BytesReadUsefulData.Int64() - lastStats.BytesReadUsefulData.Int64()
 			byteRate /= int64(interval)
 			line := fmt.Sprintf(
-				"%v: downloading %q: %s/%s(%d Bytes written to memory), %d/%d pieces completed (%d partial): %v/s\n",
+				"%s %v: downloading %q: %s/%s(%d Bytes written to memory), %d/%d pieces completed (%d partial): %v/s\n",
+				time.Now().Format("2006-01-02 15:04:05"),
 				time.Since(start),
 				t.Name(),
 				humanize.Bytes(uint64(t.BytesCompleted())),
