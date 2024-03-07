@@ -707,7 +707,21 @@ func main() {
 	clientConfig.PublicIp4 = nil
 	clientConfig.Debug = debugFlag
 	clientConfig.RandomSeed = *randomSeed
-	addrPort, _ := netip.ParseAddrPort(fmt.Sprintf("%s:%d", configStruct.Server.ServerIP, configStruct.Port.DataPort))
+	// ServerIP could be IP or domain name.
+	// try it as IP
+	addrPort, err := netip.ParseAddrPort(fmt.Sprintf("%s:%d", configStruct.Server.ServerIP, configStruct.Port.DataPort))
+	if err != nil {
+		// try it as domain name
+		ips, err := net.LookupIP(configStruct.Server.ServerIP)
+		if err != nil {
+			panic(fmt.Errorf("Error resolving hostname: %v", err))
+		}
+		ip := ips[0]
+		addrPort, err = netip.ParseAddrPort(fmt.Sprintf("%s:%d", ip, configStruct.Port.DataPort))
+		if err != nil {
+			panic(err)
+		}
+	}
 	clientConfig.ServerAddr = net.TCPAddrFromAddrPort(addrPort)
 	if pss, err := request_strategy.MapPieceSelectionStrategyEnum(configStruct.TorrentLib.PieceSelectionStrategy); err != nil {
 		panic(err)
