@@ -316,7 +316,8 @@ class RPCClient:
         # parent_proc.kill()
 
     def rpc_server(self):
-        log_path = os.path.join(self.current_path, f"rpc_server_{self.rank}.log")
+        os.makedirs(os.path.join(self.current_path, "logs"), exist_ok=True)
+        log_path = os.path.join(self.current_path, "logs", f"rpc_server_{self.rank}.log")
         bin_path = os.path.join(self.current_path, "rpc_server", "rpc_server.bin")
         config_path = os.path.join(self.current_path, "rpc_server", "config.json")
         cmd = f"{bin_path} -config {config_path} -random_seed {self.rank}"

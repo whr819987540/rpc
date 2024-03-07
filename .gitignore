@@ -11,3 +11,4 @@ config.jsonc
 distribution_aggregation_output.csv
 __pycache__
 config.json
+logs
