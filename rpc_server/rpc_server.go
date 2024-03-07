@@ -348,7 +348,7 @@ func stop_seeding(w http.ResponseWriter, r *http.Request) {
 		}
 		// Drop the torrent from the client, and close it.
 		// No methods like pause are provided.
-		t.Drop()
+		defer t.Drop()
 
 	} else if storageMethod == "disk" {
 
