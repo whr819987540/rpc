@@ -30,7 +30,7 @@ class TorrentCommunication:
         self.logger = logger
         self.thread_pool = ThreadPoolExecutor(2)
 
-    def bt_broadcast(self, data_path: Union[str, None]):
+    def bt_broadcast(self, data_path: Union[str, None], group=None):
         """
             For server, data_path is str and this function returns torrent. If this function failed, an Exception will be raised.
 
@@ -64,7 +64,7 @@ class TorrentCommunication:
         self.logger.debug("_start_seeding is done")
 
     @staticmethod
-    def _broadcast_torrent(self, torrent:bytes):
+    def _broadcast_torrent(self, torrent:bytes, group=None):
         """
             Broadcast torrent to all clients.
 
@@ -101,7 +101,7 @@ class TorrentCommunicationPyTorch(TorrentCommunication):
         self.logger = logger
         self.thread_pool = ThreadPoolExecutor(2)
 
-    def bt_broadcast(self, data_path: Union[str, None]):
+    def bt_broadcast(self, data_path: Union[str, None], group=None):
         """
             For server, data_path is str and this function returns torrent. If this function failed, an Exception will be raised.
 
@@ -130,7 +130,7 @@ class TorrentCommunicationPyTorch(TorrentCommunication):
             #     raise Exception(text)
 
             # send torrent
-            future_list.append(self.thread_pool.submit(self._broadcast_torrent, self, torrent))
+            future_list.append(self.thread_pool.submit(self._broadcast_torrent, self, torrent, group))
             # torrent_tensor = torch.from_numpy(np.frombuffer(torrent, np.uint8))
             # # TODO: 这里存在两个发送，增加了时延，通过别的发送方式可以优化
             # # size
@@ -148,24 +148,24 @@ class TorrentCommunicationPyTorch(TorrentCommunication):
             # size
             self.logger.debug("clinet bt_broadcast")
             torrent_size = torch.empty(1, dtype=torch.int64)
-            dist.broadcast(torrent_size, 0)
+            dist.broadcast(torrent_size, 0, group=group)
             # data
             torrent_tensor = torch.empty(torrent_size[0], dtype=torch.uint8)
-            dist.broadcast(torrent_tensor, 0)
+            dist.broadcast(torrent_tensor, 0, group=group)
             torrent = torrent_tensor.numpy().tobytes()
             self.logger.debug("clinet bt_broadcast is done")
 
         return torrent
 
     @staticmethod
-    def _broadcast_torrent(self, torrent):
+    def _broadcast_torrent(self, torrent, group=None):
         self.logger.debug("_broadcast_torrent")
         torrent_tensor = torch.from_numpy(np.frombuffer(torrent, np.uint8))
         # TODO: 这里存在两个发送，增加了时延，通过别的发送方式可以优化
         # size
-        dist.broadcast(torch.tensor([torrent_tensor.shape[0]], dtype=torch.int64), 0)
+        dist.broadcast(torch.tensor([torrent_tensor.shape[0]], dtype=torch.int64), 0, group=group)
         # data
-        dist.broadcast(torrent_tensor, 0)
+        dist.broadcast(torrent_tensor, 0, group=group)
         self.logger.debug("_broadcast_torrent is done")
 
 
