@@ -73,6 +73,12 @@ class TorrentCommunication:
         """
         pass
 
+    def __del__(self):
+        # TODO: 析构函数
+        # 1) 对所有torrent停止seeding
+        # 2) 终止RPCClient(子进程)
+        pass
+
 
 class TorrentCommunicationPyTorch(TorrentCommunication):
     """
