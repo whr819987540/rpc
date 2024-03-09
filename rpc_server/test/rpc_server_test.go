@@ -385,3 +385,11 @@ func TestDomainNameResolve(t *testing.T) {
 	addrPort, err = netip.ParseAddrPort(fmt.Sprintf("%s:%d", ip, port))
 	t.Logf("%v", addrPort)
 }
+
+func TestTime(t *testing.T) {
+	a := time.Now()
+	time.Sleep(1 * time.Second)
+	b := time.Now()
+	t.Logf("%v-%v=%v, %v", b, a, b.Sub(a).Microseconds(), b.Sub(a).Seconds())
+	t.Logf("%v", b.Sub(a).Seconds() > 1)
+}
