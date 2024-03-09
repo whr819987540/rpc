@@ -307,6 +307,10 @@ func start_seeding(w http.ResponseWriter, r *http.Request) {
 //   - 方法：POST
 //   - 输出：是否成功
 
+type stopSeedingOutput struct {
+	BytesWrittenData int64 `json:"byteswrittendata"`
+}
+
 func stop_seeding(w http.ResponseWriter, r *http.Request) {
 	log.Printf("%s %s from %s", r.Method, r.RequestURI, r.RemoteAddr)
 	if r.Method != "POST" {
@@ -346,8 +350,23 @@ func stop_seeding(w http.ResponseWriter, r *http.Request) {
 			log.Printf("stop_seeding finds the torrent not in the client's torrent list: %s", mi.Describe())
 			return
 		}
+		// collect contributions
+		var output stopSeedingOutput
+		output.BytesWrittenData = t.Stats().BytesWrittenData.Value()
 		// Drop the torrent from the client, and close it.
 		// No methods like pause are provided.
+		outputJSON, err := json.Marshal(output)
+		if err != nil {
+			log.Printf("stop_seeding JSON marshal error: %v", err)
+			http.Error(w, "JSON marshal stop_seeding output failed", http.StatusInternalServerError)
+			return
+		}
+		n, err := w.Write(outputJSON)
+		if err != nil {
+			log.Printf("stop_seeding write output to %s error: %v", r.RemoteAddr, err)
+			return
+		}
+		log.Printf("stop_seeding write %d bytes output to %s ok, %v %v %v", n, r.RemoteAddr, output, outputJSON, t.Stats().BytesWrittenData)
 		defer t.Drop()
 
 	} else if storageMethod == "disk" {
