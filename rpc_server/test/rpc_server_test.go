@@ -127,7 +127,7 @@ func download(t *testing.T, metaInfoBytes []byte) {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
 	// create a goroutine to print the download process
-	utils.TorrentBar(torrent, false)
+	utils.TorrentBar(torrent, false, ctx)
 	var wg sync.WaitGroup
 	wg.Add(1)
 	// create a goroutine to download
