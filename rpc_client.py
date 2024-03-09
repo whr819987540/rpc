@@ -51,9 +51,10 @@ class TorrentCommunication:
             return downloading_output
 
     def stop_seeding(self, torrent: bytes):
-        text, status = self.rpc_client.stop_seeding(torrent)
+        stop_seeding_output, status = self.rpc_client.stop_seeding(torrent)
         if not status:
-            raise Exception(text)
+            raise Exception(stop_seeding_output)
+        return stop_seeding_output
 
     @staticmethod
     def _start_seeding(self, torrent:bytes):
@@ -399,8 +400,8 @@ class RPCClient:
             status (bool): status_code == 200 OR NOT
         """
         url = f"http://localhost:{self.http_port}/stop_seeding/"
-        text, status_code = post(url, torrent)
-        return text.decode(encoding="utf-8", errors="ignore"), status_code == 200
+        stop_seeding_output, status_code = post(url, torrent)
+        return json.loads(stop_seeding_output), status_code == 200
 
     def get_torrent_status(self, torrent):
         """
