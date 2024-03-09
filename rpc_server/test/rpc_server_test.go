@@ -5,6 +5,8 @@ import (
 	"context"
 	"fmt"
 	"math/rand"
+	"net"
+	"net/netip"
 	"os"
 	"os/signal"
 	"reflect"
@@ -358,4 +360,28 @@ func TestMake(t *testing.T) {
 	for v := range res { // index
 		t.Logf("%d", v)
 	}
+}
+
+func TestDomainNameResolve(t *testing.T) {
+	// This function doesn't do any name resolution: both the address and the port must be numeric.
+	// addrPort, err := netip.ParseAddrPort(fmt.Sprintf("%s:%d", "baidu.com", 29601))
+	addrPort, err := netip.ParseAddrPort(fmt.Sprintf("%s:%d", "192.168.124.121", 29601))
+	if err != nil {
+		t.Errorf("Error parsing address and port: %v", err)
+		return
+	}
+	t.Logf("%v", addrPort)
+	// name resolution
+	host := "baidu.com"
+	port := 29601
+	// Resolve the hostname to an IP address
+	ips, err := net.LookupIP(host)
+	if err != nil {
+		t.Errorf("Error resolving hostname: %v", err)
+		return
+	}
+	ip := ips[0]
+
+	addrPort, err = netip.ParseAddrPort(fmt.Sprintf("%s:%d", ip, port))
+	t.Logf("%v", addrPort)
 }
