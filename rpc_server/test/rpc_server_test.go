@@ -417,3 +417,30 @@ func TestSelect(t *testing.T) {
 	}()
 	wg.Wait()
 }
+
+func TestSelectContext(t *testing.T){
+	var wg sync.WaitGroup
+	wg.Add(1)
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+
+	go func() {
+		defer wg.Done()
+		time.Sleep(3 * time.Second)
+		cancel()
+	}()
+
+	go func() {
+		for {
+			select {
+			case <-ctx.Done():
+				t.Logf("wg.Done")
+				return
+			case <-time.After(1 * time.Second):
+			}
+			t.Logf("time.After")
+		}
+	}()
+
+	wg.Wait()
+	time.Sleep(2 * time.Second)
+}
