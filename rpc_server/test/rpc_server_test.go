@@ -393,3 +393,27 @@ func TestTime(t *testing.T) {
 	t.Logf("%v-%v=%v, %v", b, a, b.Sub(a).Microseconds(), b.Sub(a).Seconds())
 	t.Logf("%v", b.Sub(a).Seconds() > 1)
 }
+
+func TestSelect(t *testing.T) {
+	var wg sync.WaitGroup
+	wg.Add(1)
+	exit := make(chan bool)
+	go func() {
+		defer wg.Done()
+		time.Sleep(3 * time.Second)
+		exit <- true
+	}()
+
+	go func() {
+		for {
+			select {
+			case <-exit:
+				t.Logf("wg.Done")
+				return
+			case <-time.After(1 * time.Second):
+			}
+			t.Logf("time.After")
+		}
+	}()
+	wg.Wait()
+}
