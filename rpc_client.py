@@ -18,6 +18,11 @@ import numpy as np
 from typing import Union
 import logging
 from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime
+from google.protobuf.timestamp_pb2 import Timestamp
+import io
+import asyncio
+import grpc_pb2
 import psutil
 import time
 import csv
@@ -177,6 +182,95 @@ class TorrentCommunicationPyTorch(TorrentCommunication):
         # data
         dist.broadcast(torrent_tensor, 0, group=group)
         self.logger.debug("_broadcast_torrent is done")
+
+
+class TorrentCommunicationGRPC(TorrentCommunication):
+    """
+        基于GRPC的TorrentCommunication
+    """
+    def __init__(self, rank, logger: logging.Logger):
+        """
+            实例化RPCClient
+        """
+        self.rank = rank
+        self.rpc_client = RPCClient(self.rank, logger)
+        self.logger = logger
+        self.thread_pool = ThreadPoolExecutor(2)
+
+    async def bt_broadcast(self, data_path: Union[str, None], distribution_start_time, round_number, clients):
+        """
+            For server, data_path is str and this function returns torrent. If this function failed, an Exception will be raised.
+
+            For client, data_path is None and this function returns torrent.
+        """
+        self.logger.debug(f"execute bt_broadcast: {data_path}")
+        if self.rank == 0:
+            # create torrent
+            torrent, status = self.rpc_client.create_torrent(data_path)
+            if not status:
+                raise Exception("create torrent error")
+            self.logger.debug("create torrent ok")
+
+            results = await asyncio.gather(
+                self._start_seeding(torrent),
+                self._broadcast_torrent(torrent, distribution_start_time, round_number, clients),
+                return_exceptions=True,
+            )
+            for idx, result in enumerate(results):
+                if isinstance(result, Exception):
+                    self.logger.exception(f"任务 {idx}, 发生异常: {result}")
+                    # 这里可以根据需要进行进一步的异常处理，如记录日志、清理资源等
+                else:
+                    self.logger.info(f"任务 {idx}, 结果: {result}")
+        else:
+            raise ValueError
+
+        return torrent
+
+    async def _start_seeding(self, torrent):
+        return super()._start_seeding(self, torrent)
+
+    async def _broadcast_torrent(self, torrent, distribution_start_time, round_number, clients):
+        self.logger.debug("_broadcast_torrent")
+        torrent_message = grpc_pb2.ServerMessage(
+            torrent_distribute=grpc_pb2.TorrentDistribute(
+                torrent=torrent,
+                timestamp=distribution_start_time,
+                round_number=round_number,
+            )
+        )
+        tasks = []
+        for client_id, stream in clients.items():
+            try:
+                tasks.append(stream.write(torrent_message))
+            except Exception as e:
+                self.logger.exception(f"向客户端 {client_id} 发送torrent出错: {e}")
+                
+        if tasks:
+            results = await asyncio.gather(*tasks, return_exceptions=True)
+            for client_id, result in zip(list(clients.keys()),results):
+                if isinstance(result, Exception):
+                    self.logger.exception(f"向客户端 client_id 发送torrent, 发生异常: {result}")
+                else:
+                    self.logger.info(f"向客户端 client_id 发送torrent, 结果 {result}")
+            
+    def _deserialize(self, data):
+        """将字节反序列化为对象"""
+        buffer = io.BytesIO(data)
+        return torch.load(buffer)
+    
+    def _serialize(self, data):
+        """将对象序列化为字节"""
+        buffer = io.BytesIO()
+        torch.save(data, buffer)
+        return buffer.getvalue()
+
+    def _get_current_timestamp(self):
+        """返回当前 UTC 时间的 Timestamp 对象"""
+        now = datetime.utcnow()
+        timestamp = Timestamp()
+        timestamp.FromDatetime(now)
+        return timestamp
 
 
 def loadConfig(filepath: str):
