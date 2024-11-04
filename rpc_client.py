@@ -327,13 +327,14 @@ class RPCClient:
         log_path = os.path.join(self.current_path, "logs", f"rpc_server_{self.rank}.log")
         bin_path = os.path.join(self.current_path, "rpc_server", "rpc_server.bin")
         config_path = os.path.join(self.current_path, "rpc_server", "config.json")
-        cmd = f"{bin_path} -config {config_path} -random_seed {self.rank}"
+        cmd = [f"{bin_path}", "-config", f"{config_path}", "-random_seed", f"{self.rank}"]
+        
         self.logger.info(f"start rpc server cmd: {cmd}")
 
         with open(log_path, "wb") as f:
             self.rpc_server_process = Popen(
                 cmd,
-                shell=True,
+                shell=False, # 直接执行命令，不要通过shell再创建
                 stdout=f,
                 stderr=f,
             )
