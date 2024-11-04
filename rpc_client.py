@@ -18,6 +18,9 @@ import numpy as np
 from typing import Union
 import logging
 from concurrent.futures import ThreadPoolExecutor
+import psutil
+import time
+import csv
 
 
 class TorrentCommunication:
@@ -254,7 +257,7 @@ class RPCClient:
     用python调用RPC server(go)提供的HTTP服务
     """
 
-    def __init__(self, rank:int, logger: logging.Logger) -> None:
+    def __init__(self, rank:int, logger: logging.Logger, measure_rpc_server_overhead=False) -> None:
         self.rank = rank
         self.logger = logger
         # 加载配置文件
@@ -263,6 +266,9 @@ class RPCClient:
         self.http_port = config.port.HttpPort
         self.storage_method = config.storage.Method
         self.save_dir = config.model.ModelPath
+        self.csv_name = os.path.dirname(os.path.abspath(__file__))
+        self.csv_name = os.path.join(self.csv_name, "../../../logs", os.getenv("DateTime"), f"{self.rank}.csv")
+        self.measure_rpc_server_overhead=measure_rpc_server_overhead
         # 以子进程的形式启动RPC server（go）
         self.start_rpc_server()
 
@@ -338,6 +344,67 @@ class RPCClient:
                 stdout=f,
                 stderr=f,
             )
+        if self.measure_rpc_server_overhead:
+            self.measure_rpc_server_overhead(self.rpc_server_process)
+
+    def append_to_csv(self, cpu, memory, timestamp):
+        with open(self.csv_name, 'a') as f:
+            writer = csv.writer(f)
+            writer.writerow([timestamp, cpu, memory])
+        
+    def measure_rpc_server_overhead(self, parent_process, interval=0.1):
+        """
+        监控指定进程及其所有子进程的 CPU 和内存使用情况，并将它们的使用量相加。
+        采样间隔
+
+        :param parent_process: 要监控的父进程的。
+        :param interval: 监控的时间间隔（秒）
+        """
+        parent_pid = parent_process.pid
+        try:
+            parent = psutil.Process(parent_pid)
+        except psutil.NoSuchProcess:
+            self.logger.info(f"进程 PID {parent_pid} 不存在。")
+            return
+
+        self.logger.info(f"开始监控进程树（父进程 PID: {parent_pid}）的资源使用情况。")
+        
+        # 初始化 CPU 百分比
+        parent.cpu_percent(interval=None)
+        for child in parent.children(recursive=True):
+            try:
+                child.cpu_percent(interval=None)
+            except psutil.NoSuchProcess:
+                continue
+        
+        while True:
+            # None正在运行
+            if parent_process.poll() is None:
+                try:
+                    children = parent.children(recursive=True)
+                    processes = [parent] + children
+                    
+                    total_cpu, total_memory = 0.0, 0.0
+                    cpu_list, mem_list = [], []
+                    for proc in processes:
+                        try:
+                            cpu = proc.cpu_percent(interval=None)
+                            mem = proc.memory_info().rss / (1024 * 1024)  # 转换为 MB
+                            total_cpu += cpu
+                            total_memory += mem
+                            cpu_list.append(cpu)
+                            mem_list.append(mem)
+                        except (psutil.NoSuchProcess, psutil.AccessDenied):
+                            continue  # 进程已终止或无访问权限
+
+                    self.append_to_csv(total_cpu, total_memory, time.time())
+                    time.sleep(interval)
+                except psutil.NoSuchProcess:
+                    self.logger.info("父进程已终止。")
+                    break
+            else:
+                self.logger.info("父进程已终止。")
+                break
 
     def create_torrent(self, path: str):
         """
