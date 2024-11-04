@@ -598,9 +598,16 @@ class RPCClient:
             torrent_status(dict): {exist, seeding}
             status (bool): status_code == 200 OR NOT
         """
-        url = f"http://localhost:{self.http_port}/start_downloading/"
-        downloading_output, status_code = post(url, torrent)
-        return json.loads(downloading_output), status_code == 200
+        try:
+            url = f"http://localhost:{self.http_port}/start_downloading/"
+            downloading_output, status_code = post(url, torrent)
+        except requests.exceptions.ConnectionError as e:
+            self.logger.warning(e)
+            self.stop_rpc_server()
+            self.start_rpc_server()
+            return self.start_downloading(torrent)
+        else:    
+            return json.loads(downloading_output), status_code == 200
 
     def get_name(self, torrent):
         """
