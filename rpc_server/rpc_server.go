@@ -465,6 +465,7 @@ func get_torrent_status(w http.ResponseWriter, r *http.Request) {
 
 type startDownloadingOutput struct {
 	createTorrentInput
+	BytesWrittenData int64 `json:"byteswrittendata"`
 }
 
 func start_downloading(w http.ResponseWriter, r *http.Request) {
@@ -568,6 +569,7 @@ func start_downloading(w http.ResponseWriter, r *http.Request) {
 	)
 
 	var output startDownloadingOutput
+	output.BytesWrittenData = t.Stats().BytesWrittenData.Value()
 	if storageMethod == "memory" {
 
 	} else if storageMethod == "tmpfs" {
@@ -583,7 +585,7 @@ func start_downloading(w http.ResponseWriter, r *http.Request) {
 			log.Printf("start_downloading write output to %s error: %v", r.RemoteAddr, err)
 			return
 		}
-		log.Printf("start_downloading write %d bytes output to %s ok", n, r.RemoteAddr)
+		log.Printf("start_downloading write %d bytes output to %s ok, %v %v %v", n, r.RemoteAddr, output, outputJson, t.Stats().BytesWrittenData)
 	} else if storageMethod == "disk" {
 
 	} else {
