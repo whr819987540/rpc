@@ -6,26 +6,27 @@
 import os
 import re
 import json
-from types import SimpleNamespace
-from subprocess import Popen
-from threading import Thread
-import requests
-from time import sleep
 import signal
-from torch import distributed as dist
 import torch
 import numpy as np
-from typing import Union
 import logging
-from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime
-from google.protobuf.timestamp_pb2 import Timestamp
 import io
 import asyncio
 import grpc_pb2
 import psutil
 import time
 import csv
+import requests
+
+from types import SimpleNamespace
+from typing import Union
+from subprocess import Popen
+from threading import Thread
+from time import sleep
+from torch import distributed as dist
+from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime
+from google.protobuf.timestamp_pb2 import Timestamp
 
 
 class TorrentCommunication:
